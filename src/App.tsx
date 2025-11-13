@@ -1,20 +1,44 @@
+import { useEffect, useState } from 'react';
 import './App.css'
 import { useForm } from 'react-hook-form'
 import type { SubmitHandler } from 'react-hook-form'
+import axios from 'axios';
 
 interface LoginFormInputs {
   usuario: string;
   password: string
 }
+interface ApiResponse {
+  message: string;
+}
 
 function App() {
+ const [mensaje, setMensaje] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMensaje = async (): Promise<void> => {
+      try {
+        const response = await axios.get<ApiResponse>('http://localhost:8000');
+        setMensaje(response.data.message);
+      } catch (err: any) {
+        console.error('❌ Error:', err.message);
+        setError(err.message || 'Error desconocido');
+      }
+    };
+    
+    fetchMensaje();
+  }, []);
+  console.log(`${mensaje || error}`)
+
+
+
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>()
 
   const myFuncionTheSumit: SubmitHandler<LoginFormInputs> = (data) => {
     console.log("Datos del formulario:", data)
     alert(`Bienvenido, ${data.usuario}`)
   }
-
   return (
     <>
       <div className='flex flex-col justify-center items-center mb-12'>
@@ -33,7 +57,7 @@ function App() {
         <button className='mt-10 text-white bg-amber-500 rounded-xl p-4' type='submit'>Iniciar Sesión</button>
       </form>
       <p className='text-center text-[#dbdbdb] font-light'>Al iniciar sesión, acepta nuestros términos de uso y política
-        de privacidad</p>
+        de privacidad.</p>
     </>
   )
 }
